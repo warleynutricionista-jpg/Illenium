@@ -1133,4 +1133,11 @@ Config.InitialPlayerClothes = {
 Config.ModernUI = {
     -- Keeps illenium-appearance as the main engine and only enhances NUI UX.
     IdentityEnabled = true,
+    Assets = {
+        -- Paths can point to kCharcreator/kIdentity assets if copied later.
+        -- Missing files are treated as optional and must never break NUI.
+        identityBackdrop = "web/dist/images/background/debug-bg.webp",
+        malePlaceholder = "web/dist/images/placeholders/male.webp",
+        femalePlaceholder = "web/dist/images/placeholders/female.webp",
+    },
 }

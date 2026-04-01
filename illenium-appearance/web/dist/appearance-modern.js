@@ -5,135 +5,206 @@
 
   const state = {
     nuiVisible: false,
-    interceptingSave: false,
-    pendingSave: null,
     identityEnabled: true,
+    appearanceReady: false,
+    interceptSave: false,
+    pendingAppearance: null,
+    assets: {},
   };
 
   const fields = {
-    firstname: '', lastname: '', dob: '', sex: 'M', nationality: ''
+    firstname: '',
+    lastname: '',
+    dob: '',
+    sex: 'M',
+    nationality: '',
   };
 
-  const el = document.createElement('div');
-  el.id = 'ia-modern-identity';
-  el.innerHTML = `
-    <section class="ia-panel">
-      <h2 class="ia-title">Identidade do Personagem</h2>
-      <p class="ia-subtitle">Visual inspirado em kIdentity com persistência compatível com illenium-appearance.</p>
-      <div class="ia-grid">
-        <label>Nome<input id="ia-firstname" maxlength="24" placeholder="Nome" /></label>
-        <label>Sobrenome<input id="ia-lastname" maxlength="24" placeholder="Sobrenome" /></label>
-        <label>Data de nascimento<input id="ia-dob" type="date" /></label>
-        <label>Sexo
-          <select id="ia-sex">
-            <option value="M">Masculino</option>
-            <option value="F">Feminino</option>
-          </select>
-        </label>
-        <label class="ia-full">Nacionalidade<input id="ia-nationality" maxlength="24" placeholder="Nacionalidade" /></label>
-      </div>
-      <div class="ia-actions">
-        <button type="button" class="ia-cancel" id="ia-cancel">Cancelar</button>
-        <button type="button" class="ia-confirm" id="ia-confirm">Confirmar e Salvar</button>
-      </div>
-      <div class="ia-error" id="ia-error"></div>
-    </section>
-  `;
+  const nativeFetch = window.fetch.bind(window);
 
-  const get = (id) => el.querySelector(`#${id}`);
-  const errorEl = () => get('ia-error');
-
-  const send = async (eventName, data = {}) => {
-    const response = await fetch(`https://${RESOURCE}/${eventName}`, {
+  const postNui = async (route, payload = {}) => {
+    const response = await nativeFetch(`https://${RESOURCE}/${route}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
+
     return response.json().catch(() => ({}));
   };
 
-  const setOpen = (isOpen) => {
-    el.classList.toggle('ia-open', isOpen);
-    if (!isOpen) {
-      errorEl().textContent = '';
+  const createIdentityOverlay = () => {
+    const node = document.createElement('section');
+    node.id = 'ia-modern-identity';
+    node.innerHTML = `
+      <div class="ia-backdrop"></div>
+      <div class="ia-panel">
+        <header class="ia-panel-header">
+          <h2>Identidade do personagem</h2>
+          <p>Fluxo inspirado em kIdentity, mantendo callbacks do illenium-appearance.</p>
+        </header>
+        <div class="ia-grid">
+          <label>Nome<input id="ia-firstname" maxlength="24" placeholder="Nome" /></label>
+          <label>Sobrenome<input id="ia-lastname" maxlength="24" placeholder="Sobrenome" /></label>
+          <label>Data de nascimento<input id="ia-dob" type="date" /></label>
+          <label>Sexo
+            <select id="ia-sex">
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+            </select>
+          </label>
+          <label class="ia-full">Nacionalidade<input id="ia-nationality" maxlength="24" placeholder="Nacionalidade" /></label>
+        </div>
+        <div class="ia-actions">
+          <button type="button" data-action="cancel">Cancelar</button>
+          <button type="button" class="ia-primary" data-action="confirm">Confirmar e salvar</button>
+        </div>
+        <p id="ia-error" class="ia-error"></p>
+      </div>
+    `;
+
+    return node;
+  };
+
+  const createHudOverlay = () => {
+    const node = document.createElement('section');
+    node.id = 'ia-modern-hud';
+    node.innerHTML = `
+      <div class="ia-hud-card">
+        <div class="ia-stepper">
+          <div class="ia-step ia-step-active" data-step="identity">1. Identidade</div>
+          <div class="ia-step" data-step="appearance">2. Aparência</div>
+        </div>
+        <div class="ia-hud-actions">
+          <button type="button" data-cam="head">Rosto</button>
+          <button type="button" data-cam="body">Corpo</button>
+          <button type="button" data-turn="left">↺</button>
+          <button type="button" data-turn="right">↻</button>
+        </div>
+      </div>
+    `;
+    return node;
+  };
+
+  const identityEl = createIdentityOverlay();
+  const hudEl = createHudOverlay();
+
+  const getById = (id) => identityEl.querySelector(`#${id}`);
+
+  const setRootState = (enabled) => {
+    document.body.classList.toggle('ia-modernized', enabled);
+    hudEl.classList.toggle('ia-open', enabled);
+  };
+
+  const setIdentityOpen = (open) => {
+    identityEl.classList.toggle('ia-open', open);
+    if (!open) {
+      getById('ia-error').textContent = '';
     }
   };
 
-  const validate = () => {
-    fields.firstname = get('ia-firstname').value.trim();
-    fields.lastname = get('ia-lastname').value.trim();
-    fields.dob = get('ia-dob').value;
-    fields.sex = get('ia-sex').value;
-    fields.nationality = get('ia-nationality').value.trim();
+  const setStep = (step) => {
+    hudEl.querySelectorAll('.ia-step').forEach((item) => {
+      item.classList.toggle('ia-step-active', item.dataset.step === step);
+    });
+  };
 
-    if (!fields.firstname || !fields.lastname || !fields.dob) {
+  const readIdentityFields = () => {
+    fields.firstname = getById('ia-firstname').value.trim();
+    fields.lastname = getById('ia-lastname').value.trim();
+    fields.dob = getById('ia-dob').value;
+    fields.sex = getById('ia-sex').value;
+    fields.nationality = getById('ia-nationality').value.trim();
+    return fields;
+  };
+
+  const validateIdentity = () => {
+    const data = readIdentityFields();
+    if (!data.firstname || !data.lastname || !data.dob) {
       return 'Preencha nome, sobrenome e data de nascimento.';
     }
-
     return '';
   };
 
-  const submitSave = async () => {
-    const message = validate();
-    if (message) {
-      errorEl().textContent = message;
+  const cancelIdentity = async () => {
+    state.pendingAppearance = null;
+    state.interceptSave = false;
+    setIdentityOpen(false);
+    await postNui('appearance_exit', {});
+  };
+
+  const confirmIdentity = async () => {
+    const validationError = validateIdentity();
+    if (validationError) {
+      getById('ia-error').textContent = validationError;
       return;
     }
 
     try {
-      await send('appearance_save_identity', fields);
-      const originalPayload = state.pendingSave;
-      state.pendingSave = null;
-      state.interceptingSave = false;
-      setOpen(false);
-      await send('appearance_save', originalPayload);
-    } catch (err) {
-      errorEl().textContent = 'Falha ao salvar. Tente novamente.';
-      console.error('[illenium-appearance] identity bridge save failed', err);
+      await postNui('appearance_save_identity', readIdentityFields());
+      const appearance = state.pendingAppearance;
+      state.pendingAppearance = null;
+      state.interceptSave = false;
+      setIdentityOpen(false);
+      setStep('appearance');
+      await postNui('appearance_save', appearance || {});
+    } catch (error) {
+      getById('ia-error').textContent = 'Falha ao salvar. Verifique os dados e tente novamente.';
+      console.error('[ia-modern] failed to confirm identity', error);
     }
   };
 
-  const cancelSave = async () => {
-    state.pendingSave = null;
-    state.interceptingSave = false;
-    setOpen(false);
+  const bindIdentityEvents = () => {
+    identityEl.querySelector('[data-action="cancel"]').addEventListener('click', cancelIdentity);
+    identityEl.querySelector('[data-action="confirm"]').addEventListener('click', confirmIdentity);
   };
 
-  const bootstrap = async () => {
-    document.body.appendChild(el);
-    get('ia-confirm').addEventListener('click', submitSave);
-    get('ia-cancel').addEventListener('click', cancelSave);
+  const bindHudEvents = () => {
+    hudEl.addEventListener('click', async (event) => {
+      const target = event.target.closest('button');
+      if (!target) return;
 
+      const cam = target.dataset.cam;
+      const turn = target.dataset.turn;
+
+      if (cam === 'head') {
+        await postNui('appearance_set_camera', 'head');
+      } else if (cam === 'body') {
+        await postNui('appearance_set_camera', 'body');
+      } else if (turn === 'left') {
+        await postNui('rotate_left', {});
+      } else if (turn === 'right') {
+        await postNui('rotate_right', {});
+      }
+    });
+  };
+
+  const hydrateConfig = async () => {
     try {
-      const cfg = await send('appearance_get_modern_ui_config', {});
-      state.identityEnabled = cfg?.identityEnabled !== false;
-    } catch (e) {
+      const config = await postNui('appearance_get_modern_ui_config', {});
+      state.identityEnabled = config?.identityEnabled !== false;
+      state.assets = config?.assets || {};
+    } catch (error) {
       state.identityEnabled = true;
+      state.assets = {};
     }
   };
 
-  const nativeFetch = window.fetch.bind(window);
-  window.fetch = async (input, init = undefined) => {
+  window.fetch = async (input, init) => {
     try {
       const url = typeof input === 'string' ? input : input?.url || '';
-      if (
-        state.identityEnabled &&
-        state.nuiVisible &&
-        !state.interceptingSave &&
-        typeof url === 'string' &&
-        /\/appearance_save$/.test(url)
-      ) {
-        state.interceptingSave = true;
-        state.pendingSave = JSON.parse(init?.body || '{}');
-        setOpen(true);
-
+      const isAppearanceSave = typeof url === 'string' && /\/appearance_save$/.test(url);
+      if (state.identityEnabled && state.nuiVisible && isAppearanceSave && !state.interceptSave) {
+        state.interceptSave = true;
+        state.pendingAppearance = JSON.parse(init?.body || '{}');
+        setIdentityOpen(true);
+        setStep('identity');
         return new Response(JSON.stringify(1), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         });
       }
-    } catch (err) {
-      console.error('[illenium-appearance] modern bridge fetch intercept failed', err);
+    } catch (error) {
+      console.error('[ia-modern] fetch intercept failed', error);
     }
 
     return nativeFetch(input, init);
@@ -143,22 +214,36 @@
     const type = event?.data?.type;
     if (OPEN_EVENTS.has(type)) {
       state.nuiVisible = true;
-    }
-    if (CLOSE_EVENTS.has(type)) {
+      setRootState(true);
+      setStep('appearance');
+      if (!state.identityEnabled) {
+        setIdentityOpen(false);
+      }
+    } else if (CLOSE_EVENTS.has(type)) {
       state.nuiVisible = false;
-      state.interceptingSave = false;
-      state.pendingSave = null;
-      setOpen(false);
+      state.interceptSave = false;
+      state.pendingAppearance = null;
+      setIdentityOpen(false);
+      setRootState(false);
     }
   });
 
   window.addEventListener('error', (event) => {
-    console.error('[illenium-appearance] NUI JS error captured', event.error || event.message);
+    console.error('[ia-modern] runtime error', event.error || event.message);
   });
+
+  const bootstrap = async () => {
+    document.body.appendChild(hudEl);
+    document.body.appendChild(identityEl);
+
+    bindIdentityEvents();
+    bindHudEvents();
+    await hydrateConfig();
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
   } else {
-    bootstrap();
+    bootstrap().catch(console.error);
   }
 })();
