@@ -1129,3 +1129,8 @@ Config.InitialPlayerClothes = {
         }
     }
 }
+
+Config.ModernUI = {
+    -- Keeps illenium-appearance as the main engine and only enhances NUI UX.
+    IdentityEnabled = true,
+}

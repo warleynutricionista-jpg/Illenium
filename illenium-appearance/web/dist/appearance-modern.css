@@ -1,0 +1,89 @@
+:root {
+  --ia-accent-a: #f7d48c;
+  --ia-accent-b: #c99c47;
+  --ia-bg: rgba(10, 10, 12, 0.74);
+  --ia-border: rgba(255, 255, 255, 0.16);
+}
+
+#ia-modern-identity {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 999999;
+  font-family: Inter, Arial, sans-serif;
+  background: radial-gradient(circle at center, rgba(0,0,0,0.2), rgba(0,0,0,0.65));
+}
+
+#ia-modern-identity.ia-open { display: flex; }
+
+#ia-modern-identity .ia-panel {
+  width: min(460px, 96vw);
+  margin-right: 2.5vw;
+  background: var(--ia-bg);
+  border: 1px solid var(--ia-border);
+  border-radius: 16px;
+  padding: 22px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 54px rgba(0,0,0,.5);
+}
+
+#ia-modern-identity .ia-title {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 22px;
+}
+#ia-modern-identity .ia-subtitle {
+  margin: 0 0 18px;
+  color: rgba(255,255,255,.65);
+  font-size: 13px;
+}
+
+#ia-modern-identity .ia-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#ia-modern-identity .ia-grid .ia-full { grid-column: 1 / -1; }
+
+#ia-modern-identity label { display: flex; flex-direction: column; gap: 6px; color: rgba(255,255,255,.75); font-size: 12px; }
+#ia-modern-identity input,
+#ia-modern-identity select {
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  border-radius: 10px;
+  color: #fff;
+  height: 40px;
+  padding: 0 12px;
+  outline: none;
+}
+#ia-modern-identity input:focus,
+#ia-modern-identity select:focus {
+  border-color: var(--ia-accent-a);
+  box-shadow: 0 0 0 2px rgba(247,212,140,.18);
+}
+
+#ia-modern-identity .ia-actions { display: flex; gap: 10px; margin-top: 16px; }
+#ia-modern-identity button {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 0 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+#ia-modern-identity .ia-cancel { background: rgba(255,255,255,.08); color: #fff; }
+#ia-modern-identity .ia-confirm {
+  color: #2d2413;
+  background: linear-gradient(90deg, var(--ia-accent-a), var(--ia-accent-b));
+}
+#ia-modern-identity .ia-error { min-height: 18px; margin-top: 8px; color: #ff8585; font-size: 12px; }
+
+#ia-modern-identity .ia-asset-fallback {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.7);
+  font-size: 12px;
+}
