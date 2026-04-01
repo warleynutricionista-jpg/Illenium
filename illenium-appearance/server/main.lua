@@ -212,6 +212,26 @@ RegisterNetEvent('illenium-appearance:server:chargeAndSave', function(shopType, 
     end
 end)
 
+
+RegisterNetEvent('illenium-appearance:server:saveIdentity', function(identity)
+    local src = source
+    if not isValidSource(src) or type(identity) ~= 'table' then return end
+
+    local payload = {
+        firstname = tostring(identity.firstname or ''):sub(1, 24),
+        lastname = tostring(identity.lastname or ''):sub(1, 24),
+        dateofbirth = tostring(identity.dob or ''):sub(1, 16),
+        sex = tostring(identity.sex or ''):sub(1, 1),
+        nationality = tostring(identity.nationality or ''):sub(1, 24),
+    }
+
+    if payload.firstname == '' or payload.lastname == '' or payload.dateofbirth == '' then
+        return
+    end
+
+    TriggerEvent('illenium-appearance:server:onIdentitySaved', src, payload)
+end)
+
 RegisterNetEvent('illenium-appearance:server:saveOutfit', function(name, model, components, props)
     local src = source
     if not isValidSource(src) then return end

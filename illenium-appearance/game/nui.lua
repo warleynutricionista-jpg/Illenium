@@ -121,6 +121,33 @@ RegisterNUICallback("appearance_exit", function(_, cb)
     client.exitPlayerCustomization()
 end)
 
+
+RegisterNUICallback("appearance_get_modern_ui_config", function(_, cb)
+    cb({
+        identityEnabled = Config.ModernUI and Config.ModernUI.IdentityEnabled ~= false,
+        assets = Config.ModernUI and Config.ModernUI.Assets or {},
+    })
+end)
+
+RegisterNUICallback("appearance_save_identity", function(identity, cb)
+    if type(identity) ~= "table" then
+        cb({ success = false, error = "invalid_payload" })
+        return
+    end
+
+    local firstname = tostring(identity.firstname or "")
+    local lastname = tostring(identity.lastname or "")
+    local dateofbirth = tostring(identity.dob or "")
+
+    if firstname == "" or lastname == "" or dateofbirth == "" then
+        cb({ success = false, error = "required_fields" })
+        return
+    end
+
+    cb({ success = true })
+    TriggerServerEvent("illenium-appearance:server:saveIdentity", identity)
+    TriggerEvent("illenium-appearance:client:identitySaved", identity)
+end)
 RegisterNUICallback("rotate_left", function(_, cb)
     cb(1)
     client.pedTurn(cache.ped, 10.0)
