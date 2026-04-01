@@ -66,6 +66,43 @@ body.ia-modernized button {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+#ia-modern-hud .ia-category-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#ia-modern-hud .ia-category {
+  min-height: 66px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px;
+}
+
+#ia-modern-hud .ia-category img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+#ia-modern-hud .ia-category-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.82);
+  text-align: center;
+  line-height: 1;
+}
+
+#ia-modern-hud .ia-category-active {
+  border-color: rgba(245, 210, 139, 0.8);
+  box-shadow: 0 0 0 1px rgba(245, 210, 139, 0.4) inset;
+}
+
 #ia-modern-hud button {
   height: 34px;
   color: var(--ia-text);
@@ -95,6 +132,7 @@ body.ia-modernized button {
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at center, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.72));
+  background-repeat: no-repeat;
 }
 
 #ia-modern-identity .ia-panel {

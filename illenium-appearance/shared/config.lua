@@ -1134,10 +1134,35 @@ Config.ModernUI = {
     -- Keeps illenium-appearance as the main engine and only enhances NUI UX.
     IdentityEnabled = true,
     Assets = {
-        -- Paths can point to kCharcreator/kIdentity assets if copied later.
-        -- Missing files are treated as optional and must never break NUI.
-        identityBackdrop = "web/dist/images/background/debug-bg.webp",
-        malePlaceholder = "web/dist/images/placeholders/male.webp",
-        femalePlaceholder = "web/dist/images/placeholders/female.webp",
+        -- Base folders expected by the modern NUI adapter.
+        base = "web/dist/images",
+        background = "background/debug-bg.webp",
+        music = {
+            track = "music/blindinglights.mp3",
+            cover = "music/theweeknd.webp",
+        },
+        categories = {
+            accessory = "categories/accessory.webp",
+            beard = "categories/beard.webp",
+            blush = "categories/blush.webp",
+            eyebrows = "categories/eyebrows.webp",
+            glasses = "categories/glasses.webp",
+            hair = "categories/hair.webp",
+            hat = "categories/hat.webp",
+            jacket = "categories/jacket.webp",
+            lipstick = "categories/lipstick.webp",
+            makeup = "categories/makeup.webp",
+            masks = "categories/masks.webp",
+            pants = "categories/pants.webp",
+            shoes = "categories/shoes.webp",
+            torso = "categories/torso.png",
+            tshirt = "categories/tshirt.webp",
+        },
+        parents = "parents",
+        charcreator = {
+            shared = "charcreator",
+            female = "charcreator/mp_f_freemode_01",
+            male = "charcreator/mp_m_freemode_01",
+        },
     },
 }

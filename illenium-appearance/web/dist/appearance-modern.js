@@ -11,6 +11,16 @@
     pendingAppearance: null,
     assets: {},
   };
+  const CATEGORIES = [
+    { key: 'hair', label: 'Cabelo', camera: 'head' },
+    { key: 'beard', label: 'Barba', camera: 'head' },
+    { key: 'eyebrows', label: 'Sobrancelha', camera: 'head' },
+    { key: 'makeup', label: 'Makeup', camera: 'head' },
+    { key: 'jacket', label: 'Jaqueta', camera: 'body' },
+    { key: 'pants', label: 'Calça', camera: 'body' },
+    { key: 'shoes', label: 'Sapato', camera: 'body' },
+    { key: 'accessory', label: 'Acessório', camera: 'body' },
+  ];
 
   const fields = {
     firstname: '',
@@ -80,6 +90,7 @@
           <button type="button" data-turn="left">↺</button>
           <button type="button" data-turn="right">↻</button>
         </div>
+        <div class="ia-category-grid" id="ia-category-grid"></div>
       </div>
     `;
     return node;
@@ -100,6 +111,51 @@
     if (!open) {
       getById('ia-error').textContent = '';
     }
+  };
+
+  const joinAsset = (relativePath = '') => {
+    if (!relativePath) return '';
+    const base = state.assets?.base || 'web/dist/images';
+    return `${base.replace(/\/$/, '')}/${String(relativePath).replace(/^\//, '')}`;
+  };
+
+  const buildCategoryGrid = () => {
+    const container = hudEl.querySelector('#ia-category-grid');
+    if (!container) return;
+    container.innerHTML = '';
+    CATEGORIES.forEach((category) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ia-category';
+      button.dataset.category = category.key;
+      button.dataset.cam = category.camera;
+      button.title = category.label;
+
+      const image = document.createElement('img');
+      image.alt = category.label;
+      image.loading = 'lazy';
+      const imagePath = joinAsset(state.assets?.categories?.[category.key] || '');
+      image.src = imagePath;
+      image.onerror = () => {
+        image.remove();
+        const fallback = document.createElement('span');
+        fallback.className = 'ia-asset-fallback';
+        fallback.textContent = category.label.slice(0, 2).toUpperCase();
+        button.appendChild(fallback);
+      };
+      if (!imagePath) {
+        image.onerror();
+      } else {
+        button.appendChild(image);
+      }
+
+      const label = document.createElement('span');
+      label.className = 'ia-category-label';
+      label.textContent = category.label;
+      button.appendChild(label);
+
+      container.appendChild(button);
+    });
   };
 
   const setStep = (step) => {
@@ -175,6 +231,12 @@
       } else if (turn === 'right') {
         await postNui('rotate_right', {});
       }
+
+      const category = target.dataset.category;
+      if (category) {
+        hudEl.querySelectorAll('.ia-category').forEach((node) => node.classList.remove('ia-category-active'));
+        target.classList.add('ia-category-active');
+      }
     });
   };
 
@@ -183,9 +245,18 @@
       const config = await postNui('appearance_get_modern_ui_config', {});
       state.identityEnabled = config?.identityEnabled !== false;
       state.assets = config?.assets || {};
+      buildCategoryGrid();
+      const backdrop = identityEl.querySelector('.ia-backdrop');
+      const backgroundImage = joinAsset(state.assets?.background || '');
+      if (backdrop && backgroundImage) {
+        backdrop.style.backgroundImage = `linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.72)), url('${backgroundImage}')`;
+        backdrop.style.backgroundSize = 'cover';
+        backdrop.style.backgroundPosition = 'center';
+      }
     } catch (error) {
       state.identityEnabled = true;
       state.assets = {};
+      buildCategoryGrid();
     }
   };
 
