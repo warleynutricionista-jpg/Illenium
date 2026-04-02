@@ -36,8 +36,11 @@ end
 
 local function InitESX()
     local ESX = nil
+    if GetResourceState("es_extended") ~= "started" then
+        return nil
+    end
     pcall(function()
-        ESX = exports["gamemode"]:getSharedObject()
+        ESX = exports["es_extended"]:getSharedObject()
     end)
     if not ESX then
         TriggerEvent("esx:getSharedObject", function(obj) ESX = obj end)
@@ -48,6 +51,9 @@ end
 
 local function InitQBCore()
     local QBCore = nil
+    if GetResourceState("qb-core") ~= "started" then
+        return nil
+    end
     pcall(function()
         QBCore = exports["qb-core"]:GetCoreObject()
     end)
@@ -56,6 +62,9 @@ end
 
 local function InitQBox()
     local QBX = nil
+    if GetResourceState("qbx_core") ~= "started" then
+        return nil
+    end
     pcall(function()
         QBX = exports['qbx_core']:GetCoreObject()
     end)
@@ -77,6 +86,10 @@ function Bridge:Init(configFramework)
         self.Object = InitQBCore()
     elseif self.Framework == "qbox" then
         self.Object = InitQBox()
+    end
+
+    if self.Framework ~= "standalone" and not self.Object then
+        self.Framework = "standalone"
     end
 
     local resourceName = GetCurrentResourceName()
