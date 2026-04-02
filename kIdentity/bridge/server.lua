@@ -8,13 +8,12 @@ local AlreadyRegistered = {}
 
 AddEventHandler("playerDropped", function()
     local src = source
+    local identifier = IdentifierCache[src]
     IdentifierCache[src] = nil
 
-    for identifier, _ in pairs(PlayerIdentity) do
-        if IdentifierCache[src] == identifier then
-            PlayerIdentity[identifier] = nil
-            AlreadyRegistered[identifier] = nil
-        end
+    if identifier then
+        PlayerIdentity[identifier] = nil
+        AlreadyRegistered[identifier] = nil
     end
 end)
 
@@ -56,8 +55,6 @@ end
 local function SetESXPlayerData(xPlayer, data)
     local fullName = ("%s %s"):format(data.firstName, data.lastName)
     local source = xPlayer.source or xPlayer.getSource()
-    
-    print(xPlayer)
 
     xPlayer.setIdentity({
         firstname = data.firstName,
@@ -196,13 +193,18 @@ function BridgeServer:SaveIdentity(source, identity, cb)
             charinfo.nationality = identity.nationality
             charinfo.gender = identity.gender == "female" and 1 or 0
 
-            Player.Functions.SetPlayerData("charinfo", charinfo)
+            if Player.Functions and Player.Functions.SetPlayerData then
+                Player.Functions.SetPlayerData("charinfo", charinfo)
+            else
+                Player.PlayerData.charinfo = charinfo
+            end
 
-            MySQL.update("UPDATE players SET charinfo = ? WHERE citizenid = ?", {
+            local tableName = Bridge.Framework == "qbox" and "players" or "players"
+            MySQL.update(("UPDATE %s SET charinfo = ? WHERE citizenid = ?"):format(tableName), {
                 json.encode(charinfo),
                 identifier
             }, function(rowsChanged)
-                if cb then cb(rowsChanged > 0) end
+                if cb then cb((rowsChanged or 0) > 0) end
             end)
         else
             if cb then cb(false) end
