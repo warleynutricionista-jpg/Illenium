@@ -26,6 +26,35 @@ local function GetLicense(source)
     return GetPlayerIdentifiers(source)[1] or "unknown"
 end
 
+local function GetFrameworkPlayer(source)
+    if Bridge.Framework == "qbcore" and Bridge.Object and Bridge.Object.Functions and Bridge.Object.Functions.GetPlayer then
+        return Bridge.Object.Functions.GetPlayer(source)
+    end
+
+    if Bridge.Framework == "qbox" then
+        if Bridge.Object and Bridge.Object.GetPlayer then
+            local ok, player = pcall(function()
+                return Bridge.Object:GetPlayer(source)
+            end)
+            if ok and player then return player end
+        end
+
+        if Bridge.Object and Bridge.Object.Functions and Bridge.Object.Functions.GetPlayer then
+            local ok, player = pcall(function()
+                return Bridge.Object.Functions.GetPlayer(source)
+            end)
+            if ok and player then return player end
+        end
+
+        local ok, player = pcall(function()
+            return exports.qbx_core:GetPlayer(source)
+        end)
+        if ok and player then return player end
+    end
+
+    return nil
+end
+
 function BridgeServer:GetIdentifier(source)
     if IdentifierCache[source] then
         return IdentifierCache[source]
@@ -37,13 +66,9 @@ function BridgeServer:GetIdentifier(source)
         local xPlayer = Bridge.Object.GetPlayerFromId(source)
         identifier = xPlayer and xPlayer.identifier
 
-    elseif Bridge.Framework == "qbcore" and Bridge.Object then
-        local Player = Bridge.Object.Functions.GetPlayer(source)
-        identifier = Player and Player.PlayerData.citizenid
-
-    elseif Bridge.Framework == "qbox" and Bridge.Object then
-        local player = Bridge.Object:GetPlayer(source)
-        identifier = player and player.PlayerData.citizenid
+    elseif Bridge.Framework == "qbcore" or Bridge.Framework == "qbox" then
+        local player = GetFrameworkPlayer(source)
+        identifier = player and player.PlayerData and player.PlayerData.citizenid
     end
 
     identifier = identifier or GetLicense(source)
@@ -180,23 +205,21 @@ function BridgeServer:SaveIdentity(source, identity, cb)
             end
         end)
 
-    elseif (Bridge.Framework == "qbcore" or Bridge.Framework == "qbox") and Bridge.Object then
-        local Player = Bridge.Framework == "qbox"
-            and Bridge.Object:GetPlayer(source)
-            or Bridge.Object.Functions.GetPlayer(source)
+    elseif Bridge.Framework == "qbcore" or Bridge.Framework == "qbox" then
+        local player = GetFrameworkPlayer(source)
 
-        if Player then
-            local charinfo = Player.PlayerData.charinfo or {}
+        if player then
+            local charinfo = player.PlayerData and player.PlayerData.charinfo or {}
             charinfo.firstname = identity.firstName
             charinfo.lastname = identity.lastName
             charinfo.birthdate = identity.dateOfBirth
             charinfo.nationality = identity.nationality
             charinfo.gender = identity.gender == "female" and 1 or 0
 
-            if Player.Functions and Player.Functions.SetPlayerData then
-                Player.Functions.SetPlayerData("charinfo", charinfo)
+            if player.Functions and player.Functions.SetPlayerData then
+                player.Functions.SetPlayerData("charinfo", charinfo)
             else
-                Player.PlayerData.charinfo = charinfo
+                player.PlayerData.charinfo = charinfo
             end
 
             local tableName = Bridge.Framework == "qbox" and "players" or "players"
@@ -257,13 +280,11 @@ function BridgeServer:LoadIdentity(source, cb)
             cb(nil)
         end
 
-    elseif (Bridge.Framework == "qbcore" or Bridge.Framework == "qbox") and Bridge.Object then
-        local Player = Bridge.Framework == "qbox"
-            and Bridge.Object:GetPlayer(source)
-            or Bridge.Object.Functions.GetPlayer(source)
+    elseif Bridge.Framework == "qbcore" or Bridge.Framework == "qbox" then
+        local player = GetFrameworkPlayer(source)
 
-        if Player and Player.PlayerData.charinfo then
-            local charinfo = Player.PlayerData.charinfo
+        if player and player.PlayerData and player.PlayerData.charinfo then
+            local charinfo = player.PlayerData.charinfo
             cb({
                 firstName = charinfo.firstname,
                 lastName = charinfo.lastname,
@@ -301,13 +322,11 @@ function BridgeServer:HasIdentity(source, cb)
             cb(hasIdentity)
         end)
 
-    elseif (Bridge.Framework == "qbcore" or Bridge.Framework == "qbox") and Bridge.Object then
-        local Player = Bridge.Framework == "qbox"
-            and Bridge.Object:GetPlayer(source)
-            or Bridge.Object.Functions.GetPlayer(source)
+    elseif Bridge.Framework == "qbcore" or Bridge.Framework == "qbox" then
+        local player = GetFrameworkPlayer(source)
 
-        if Player and Player.PlayerData.charinfo then
-            local charinfo = Player.PlayerData.charinfo
+        if player and player.PlayerData and player.PlayerData.charinfo then
+            local charinfo = player.PlayerData.charinfo
             local hasIdentity = charinfo.firstname ~= nil and charinfo.firstname ~= ""
             cb(hasIdentity)
         else
