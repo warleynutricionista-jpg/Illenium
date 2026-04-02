@@ -138,15 +138,15 @@ function CORE.Skin.GetSkin(ped, save)
         bracelets_text = GetPedPropTextureIndex(ped, 7),
         face = {
             headblendData = {
-                face_one = headblendData.FirstFaceShape,
-                skin_one = headblendData.FirstSkinTone,
-                face_two = headblendData.SecondFaceShape,
-                skin_two = headblendData.SecondSkinTone,
-                face_three = headblendData.ThirdFaceShape,
-                skin_three = headblendData.ThirdSkinTone,
-                face_mix = headblendData.ParentFaceShapePercent,
-                skin_mix = headblendData.ParentSkinTonePercent,
-                third_mix = headblendData.ParentThirdUnkPercen
+                face_one = headblendData.shapeFirstID,
+                skin_one = headblendData.skinFirstID,
+                face_two = headblendData.shapeSecondID,
+                skin_two = headblendData.skinSecondID,
+                face_three = headblendData.shapeThirdID,
+                skin_three = headblendData.skinThirdID,
+                face_mix = headblendData.shapeMix,
+                skin_mix = headblendData.skinMix,
+                third_mix = headblendData.thirdMix
             },
             nose_width = GetPedFaceFeature(ped, 0),
             nose_peak_height = GetPedFaceFeature(ped, 1),
@@ -208,7 +208,7 @@ function CORE.Skin.SetSkin(table, ped, change_face)
                             table.face.headblendData.face_mix,
                             table.face.headblendData.skin_mix,
                             table.face.headblendData.third_mix, false)
-        while HasPedHeadBlendFinished(ped) do Wait(0) end
+        while not HasPedHeadBlendFinished(ped) do Wait(0) end
     end
     SetPedFaceFeature(ped, 0, table.face.nose_width)
     SetPedFaceFeature(ped, 1, table.face.nose_peak_height)
