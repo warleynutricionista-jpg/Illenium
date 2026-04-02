@@ -46,18 +46,6 @@ RegisterNetEvent('kIdentity:saveIdentity', function(data)
     BridgeServer:SaveIdentity(src, identity, function(success)
         if success then
             print(('[kIdentity] Identity saved for player %d: %s %s'):format(src, identity.firstName, identity.lastName))
-
-            local sex = identity.gender == "female" and "f" or "m"
-
-            TriggerClientEvent("esx_identity:completedRegistration", src)
-
-            TriggerEvent("esx_identity:completedRegistration", src, {
-                firstname = identity.firstName,
-                lastname = identity.lastName,
-                dateofbirth = identity.dateOfBirth,
-                sex = sex
-            })
-
             TriggerClientEvent('kIdentity:identitySaved', src, identity)
         else
             print(('[kIdentity] Failed to save identity for player %d'):format(src))

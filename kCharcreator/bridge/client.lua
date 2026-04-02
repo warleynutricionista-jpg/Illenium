@@ -2,8 +2,8 @@
     CLIENT-SIDE BRIDGE
     Auto-detect player loaded & auto-open charcreator
 
-    ESX + esx_identity: Waits for identity completion before opening
-    QBCore/QBox/Standalone: Opens directly after player loaded
+    ESX + esx_identity: waits for identity completion before opening
+    QBCore/QBox/Standalone: opens directly after player loaded
 ]]
 
 if IsDuplicityVersion() then return end
@@ -20,7 +20,6 @@ local PlayerLoadedEvents = {
     qbox = "QBX:Client:OnPlayerLoaded"
 }
 
--- Check if an identity resource is running (esx_identity or kIdentity)
 local function IsEsxIdentityRunning()
     return GetResourceState("esx_identity") == "started" or GetResourceState("kIdentity") == "started"
 end
@@ -69,13 +68,12 @@ local function CheckSkinAndOpen()
     TriggerServerEvent("kCharcreator:checkSkin")
 end
 
--- Called when we're ready to check skin (either directly or after identity)
 local function OnReadyToCheckSkin()
     Wait(500)
     CheckSkinAndOpen()
 end
 
-RegisterNetEvent("kCharcreator:checkSkin:response", function(hasSkin, skin, model, sex)
+RegisterNetEvent("kCharcreator:checkSkin:response", function(hasSkin, skin, _, sex)
     if hasSkin and skin then
         if CORE and CORE.Skin and CORE.Skin.SetSkin then
             CORE.Skin.SetSkin(skin, PlayerPedId(), true)
@@ -88,18 +86,12 @@ RegisterNetEvent("kCharcreator:checkSkin:response", function(hasSkin, skin, mode
     end
 end)
 
-RegisterNetEvent("kCharcreator:loadSkin:response", function(skin, model)
+RegisterNetEvent("kCharcreator:loadSkin:response", function(skin)
     if skin and CORE and CORE.Skin and CORE.Skin.SetSkin then
         CORE.Skin.SetSkin(skin, PlayerPedId(), true)
     end
 end)
 
---[[
-    ESX Identity Integration
-    Listen for esx_identity events to open charcreator AFTER identity creation
-]]
-
--- New player finished creating identity -> open charcreator
 RegisterNetEvent("esx_identity:completedRegistration", function()
     if Bridge.Framework ~= "esx" then return end
     if IdentityCompleted then return end
@@ -109,17 +101,6 @@ RegisterNetEvent("esx_identity:completedRegistration", function()
     OnReadyToCheckSkin()
 end)
 
-RegisterNetEvent('esx_skin:playerRegistered', function(src, registered)
-    if Bridge.Framework ~= "esx" then return end
-    if IdentityCompleted then return end
-
-    
-    print("^5[kCharcreator]^0 Identity completed, opening character creator...")
-    OnReadyToCheckSkin()
-end)
-    
-
--- Existing player already has identity -> load skin directly
 RegisterNetEvent("esx_identity:alreadyRegistered", function()
     if Bridge.Framework ~= "esx" then return end
     if IdentityCompleted then return end
@@ -135,24 +116,20 @@ CreateThread(function()
         PlayerLoaded = NetworkIsSessionStarted()
     elseif Bridge.Framework == "esx" and Bridge.Object then
         local data = Bridge.Object.GetPlayerData()
-        PlayerLoaded = data and data.job ~= nil
+        PlayerLoaded = data and data.identifier ~= nil
     elseif Bridge.Framework == "qbcore" and Bridge.Object then
         local data = Bridge.Object.Functions.GetPlayerData()
         PlayerLoaded = data and data.citizenid ~= nil
-    elseif Bridge.Framework == "qbox" and Bridge.Object then
-        local data = Bridge.Object:GetPlayerData()
-        PlayerLoaded = data and data.citizenid ~= nil
+    elseif Bridge.Framework == "qbox" then
+        PlayerLoaded = LocalPlayer and LocalPlayer.state and (LocalPlayer.state.isLoggedIn or false) or false
     end
 
     BridgeClient:OnPlayerLoaded(function()
-        -- ESX with esx_identity: wait for identity events instead
         if Bridge.Framework == "esx" and IsEsxIdentityRunning() then
             print("^5[kCharcreator]^0 esx_identity detected, waiting for identity completion...")
-
             return
         end
 
-        -- QBCore, QBox, Standalone, or ESX without esx_identity: proceed directly
         Wait(1000)
         CheckSkinAndOpen()
     end)
