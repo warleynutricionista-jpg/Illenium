@@ -13,6 +13,7 @@ CORE.Charcreator.LastCameraPos = "full_body"
 CORE.Charcreator.IsIn = false
 CORE.Charcreator.ZoomOffset = 0
 CORE.Charcreator.LastCycleTime = 0
+local PLAYER_IS_READY = false
 
 exports("IsInCharCreator", function()
     return CORE.Charcreator.IsIn
@@ -172,7 +173,7 @@ local function buildParentsList()
         fathers[#fathers + 1] = {
             id = i,
             name = fatherNames[i + 1] or ("Father " .. i),
-            image = ("nui://kCharcreator/web/build/images/parents/%s.webp"):format(string.lower(fatherNames[i + 1] or "default"))
+            image = nil
         }
     end
 
@@ -180,7 +181,7 @@ local function buildParentsList()
         mothers[#mothers + 1] = {
             id = i + 24,
             name = motherNames[i + 1] or ("Mother " .. i),
-            image = ("nui://kCharcreator/web/build/images/parents/%s.webp"):format(string.lower(motherNames[i + 1] or "default"))
+            image = nil
         }
     end
 
@@ -236,7 +237,7 @@ local function buildOptions(pPed, cachedPed)
             options[cfg.key][#options[cfg.key] + 1] = {
                 id = i,
                 name = "Style " .. (i + 1),
-                image = ("nui://kCharcreator/web/build/images/charcreator/%s/%s/%d.png"):format(cachedPed, cfg.folder, i)
+                image = nil
             }
         end
     end
@@ -246,7 +247,7 @@ local function buildOptions(pPed, cachedPed)
     for i = 0, maxHair - 1 do
         options.hairStyles[#options.hairStyles + 1] = {
             id = i, name = "Style " .. i,
-            image = ("nui://kCharcreator/web/build/images/charcreator/%s/hair/%d.png"):format(cachedPed, i)
+            image = nil
         }
     end
 
@@ -275,7 +276,7 @@ local function buildOptions(pPed, cachedPed)
         options.arms[#options.arms + 1] = {
             id = i, name = "Style " .. i,
             textures = GetNumberOfPedPropTextureVariations(pPed, PROP.BRACELETS, i),
-            image = ("nui://kCharcreator/web/build/images/charcreator/%s/bracelet/%d.webp"):format(cachedPed, i)
+            image = nil
         }
     end
 
@@ -285,7 +286,7 @@ local function buildOptions(pPed, cachedPed)
             options[cfg.key][#options[cfg.key] + 1] = {
                 id = i, name = "Style " .. i,
                 textures = GetNumberOfPedTextureVariations(pPed, cfg.component, i),
-                image = ("nui://kCharcreator/web/build/images/charcreator/%s/%s/%d.webp"):format(cachedPed, cfg.folder, i)
+                image = nil
             }
         end
     end
@@ -303,32 +304,32 @@ local function buildOptions(pPed, cachedPed)
             options[cfg.key][#options[cfg.key] + 1] = {
                 id = i, name = "Style " .. i,
                 textures = GetNumberOfPedPropTextureVariations(pPed, cfg.prop, i),
-                image = ("nui://kCharcreator/web/build/images/charcreator/%s/%s/%d.webp"):format(cachedPed, cfg.folder, i)
+                image = nil
             }
         end
     end
 
-    -- Category images
+    -- Category images (fallback to icon/text-only UI when thumbnails are missing)
     options.clothingCategoryImages = {
-        jacket = "nui://kCharcreator/web/build/images/categories/jacket.webp",
-        undershirt = "nui://kCharcreator/web/build/images/categories/tshirt.webp",
-        pants = "nui://kCharcreator/web/build/images/categories/pants.webp",
-        shoes = "nui://kCharcreator/web/build/images/categories/shoes.webp",
-        hat = "nui://kCharcreator/web/build/images/categories/hat.webp",
-        glasses = "nui://kCharcreator/web/build/images/categories/glasses.webp",
-        mask = "nui://kCharcreator/web/build/images/categories/masks.webp",
-        accessory = "nui://kCharcreator/web/build/images/categories/accessory.webp",
-        torso = "nui://kCharcreator/web/build/images/categories/torso.png",
-        arms = "nui://kCharcreator/web/build/images/categories/arms.webp"
+        jacket = nil,
+        undershirt = nil,
+        pants = nil,
+        shoes = nil,
+        hat = nil,
+        glasses = nil,
+        mask = nil,
+        accessory = nil,
+        torso = nil,
+        arms = nil
     }
 
     options.hairCategoryImages = {
-        hair = "nui://kCharcreator/web/build/images/categories/hair.webp",
-        beard = "nui://kCharcreator/web/build/images/categories/beard.webp",
-        eyebrows = "nui://kCharcreator/web/build/images/categories/eyebrows.webp",
-        makeup = "nui://kCharcreator/web/build/images/categories/makeup.webp",
-        blush = "nui://kCharcreator/web/build/images/categories/blush.webp",
-        lipstick = "nui://kCharcreator/web/build/images/categories/lipstick.webp"
+        hair = nil,
+        beard = nil,
+        eyebrows = nil,
+        makeup = nil,
+        blush = nil,
+        lipstick = nil
     }
 
     return options
@@ -471,15 +472,19 @@ AddEventHandler("LIB:PLAYER_LOADED", function ()
     PLAYER_IS_READY = true;
 end)
 
+RegisterNetEvent("kCharcreator:setSex", function(sex)
+    CORE.Charcreator.PlayerSex = (sex == "f" or sex == "female") and "f" or "m"
+end)
+
 RegisterNetEvent("CORE.Charcreator:Open", function()
     local config = CORE.Charcreator.Config
 
     while not PLAYER_IS_READY do
-        Wait(1000)
-    end
-
-    while (exports["web"]:arrivalIsShowing()) do
-        Wait(2000);
+        if NetworkIsSessionStarted() and DoesEntityExist(PlayerPedId()) then
+            PLAYER_IS_READY = true
+            break
+        end
+        Wait(250)
     end
 
     -- Trigger before events

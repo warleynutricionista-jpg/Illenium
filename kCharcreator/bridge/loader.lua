@@ -55,8 +55,13 @@ end
 local function InitQBox()
     local QBX = nil
     pcall(function()
-        QBX = exports.qbx_core
+        QBX = exports['qbx_core']:GetCoreObject()
     end)
+    if not QBX then
+        pcall(function()
+            QBX = exports['qbx_core']
+        end)
+    end
     return QBX
 end
 

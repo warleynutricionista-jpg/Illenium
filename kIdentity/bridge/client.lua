@@ -56,41 +56,6 @@ function BridgeClient:OnPlayerUnloaded(cb)
     end
 end
 
-if not IsDuplicityVersion() then
-    RegisterNetEvent("esx_identity:showRegisterIdentity", function()
-        IdentityChecked = true
-        TriggerEvent("esx_skin:resetFirstSpawn")
-        Wait(100)
-        TriggerEvent("kIdentity:openForm")
-    end)
-
-    RegisterNetEvent("esx_identity:alreadyRegistered", function()
-        IdentityChecked = true
-        TriggerEvent("kIdentity:identityLoaded")
-
-        if GetResourceState("kCharcreator") ~= "started" and
-           GetResourceState("qb-clothing") ~= "started" and
-           GetResourceState("illenium-appearance") ~= "started" and
-           GetResourceState("fivem-appearance") ~= "started" then
-            if GetResourceState("esx_skin") == "started" then
-                TriggerEvent("esx_skin:playerRegistered")
-            end
-        end
-    end)
-
-    RegisterNetEvent("esx_identity:setPlayerData", function(data)
-        if Bridge.Framework == "esx" and Bridge.Object then
-            SetTimeout(1, function()
-                Bridge.Object.SetPlayerData("name", ("%s %s"):format(data.firstName, data.lastName))
-                Bridge.Object.SetPlayerData("firstName", data.firstName)
-                Bridge.Object.SetPlayerData("lastName", data.lastName)
-                Bridge.Object.SetPlayerData("dateofbirth", data.dateOfBirth)
-                Bridge.Object.SetPlayerData("sex", data.sex)
-            end)
-        end
-    end)
-end
-
 local function CheckIdentityAndOpen()
     if IdentityChecked then return end
 
@@ -116,9 +81,6 @@ RegisterNetEvent("kIdentity:checkIdentity:response", function(hasIdentity, ident
         end
 
         TriggerEvent("kIdentity:identityLoaded", identity)
-        TriggerEvent("esx_identity:alreadyRegistered")
-
-        print('[kIdentity] Player already has identity, triggering alreadyRegistered')
     else
         TriggerEvent("kIdentity:openForm")
     end
@@ -131,21 +93,16 @@ CreateThread(function()
         PlayerLoaded = NetworkIsSessionStarted()
     elseif Bridge.Framework == "esx" and Bridge.Object then
         local data = Bridge.Object.GetPlayerData()
-        PlayerLoaded = data and data.job ~= nil
+        PlayerLoaded = data and data.identifier ~= nil
     elseif Bridge.Framework == "qbcore" and Bridge.Object then
         local data = Bridge.Object.Functions.GetPlayerData()
         PlayerLoaded = data and data.citizenid ~= nil
-    elseif Bridge.Framework == "qbox" and Bridge.Object then
-        local data = Bridge.Object:GetPlayerData()
-        PlayerLoaded = data and data.citizenid ~= nil
+    elseif Bridge.Framework == "qbox" then
+        PlayerLoaded = LocalPlayer and LocalPlayer.state and (LocalPlayer.state.isLoggedIn or false) or false
     end
 
     BridgeClient:OnPlayerLoaded(function()
-        if Bridge.Framework == "esx" then
-            Wait(2000)
-        else
-            Wait(1000)
-        end
+        Wait(1000)
         CheckIdentityAndOpen()
     end)
 end)

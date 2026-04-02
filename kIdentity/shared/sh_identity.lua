@@ -7,7 +7,7 @@ CORE.Identity.Config = {
 
     lang = "en",
 
-    autoOpen = false,
+    autoOpen = true,
 
     characterCreator = "kCharcreator",
 
@@ -60,35 +60,13 @@ CORE.Identity.Config = {
     spawn_position = vec4(-1037.0, -2737.0, 20.0, 332.0),
 
     music = {
-        enabled  = true,
-        autoplay = true,
+        enabled  = false,
+        autoplay = false,
         volume   = 0.25,
-
-        playlist = {
-            {
-                id       = 1,
-                title    = "Chill Vibes",
-                artist   = "LoFi Producer",
-                coverUrl = "nui://kIdentity/web/build/images/music/cover1.svg",
-                audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-            },
-            {
-                id       = 2,
-                title    = "Night Drive",
-                artist   = "Synthwave Artist",
-                coverUrl = "nui://kIdentity/web/build/images/music/cover2.svg",
-                audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-            },
-            {
-                id       = 3,
-                title    = "Urban Flow",
-                artist   = "Beat Maker",
-                coverUrl = "nui://kIdentity/web/build/images/music/cover3.svg",
-                audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-            },
-        }
+        playlist = {}
     },
 }
+
 
 function L(key)
     local lang = CORE.Identity.Config.lang or "en"

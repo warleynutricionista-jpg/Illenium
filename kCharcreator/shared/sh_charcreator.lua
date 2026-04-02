@@ -91,18 +91,12 @@ CORE.Charcreator.Config = {
     -- MUSIC PLAYER
     ----------------------------------------------------------------
     music = {
-        enabled  = true,  -- Enable/disable music player
+        enabled  = false,  -- Enable/disable music player
         autoplay = true,  -- Auto start when creator opens
         volume   = 0.1,  -- Default volume (0.0 - 1.0)
 
         playlist = {
-            {
-                id       = 1,
-                title    = "Blinding Lights",
-                artist   = "The Weeknd",
-                coverUrl = "nui://kCharcreator/web/build/images/music/theweeknd.webp", -- nui://kCharcreator/web/build/images/music/cover1.svg
-                audioUrl = "nui://kCharcreator/web/build/images/music/blindinglights.mp3" -- nui://kCharcreator/web/build/images/music/cover1.svg
-            }
+
         }
     },
 
